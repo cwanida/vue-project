@@ -4,26 +4,72 @@
         <meta charset="UTF-8">
         <title>Shopping List App</title>
         <script src="https://unpkg.com/vue"></script>
+        <style>
+            .strikeout{
+                text-decoration: line-through;
+                color: #BBC2BB;
+            }
+        </style>
     </head>
     <body>
         <div id="shopping-list">
-            <h1>{{ header.toLocaleUpperCase() }}</h1>
-            <input v-model= "newItem" type="text" placeholder="Add an item"/>
+            <div class="header">
+                <h1>{{ header.toLocaleUpperCase() }}</h1>
+                <button v-if="state === 'default'" @click="changeState('edit')">Add item</button>
+                <button v-else @click="changeState('default')">Cancel</button>
+            </div>
+            <div v-if="state === 'edit'" class="add-item-form">
+                <input v-model="newItem" type="text" placeholder="Add an item" @keyup.enter="saveItem">
+                <button :disabled="newItem.length === 0" @click="saveItem">Save item</button>
+            </div>
+            <a v-bind:href="newItem" target="_blank">Dynamic Link</a>
             <ul>
-                <li v-for="item in items">{{ item }}</li>
+                <li v-for="item in reversedItems" :class="{strikeout: item.purchased}" @click="togglePurchased(item)">{{ item.label }}</li>
             </ul>
+            <p v-if="items.length === 0">Nice job! you've bought all your items</p>
         </div>
         <script>
             var shoppingList = new Vue({
                 el:'#shopping-list',
                 data:{
+                    state: 'default',
                     header: 'shopping list app',
                     newItem:'',
                     items:[
-                        '10 party hats',
-                        '2 board games',
-                        '20 cups'
+                        {
+                            label: '10 party hats',
+                            purchased: false
+                        },
+                        {
+                            label: '2 board games',
+                            purchased: true
+                        },
+                        {
+                            label: '20 cups',
+                            purchased: false
+                        }
                     ]
+                },
+                computed:{
+                    reversedItems(){
+                        return this.items.slice(0).reverse();
+                    }
+                },
+                methods:{
+                    saveItem: function(){
+                        this.items.push({
+                            label: this.newItem,
+                            purchased: false
+                        });
+                        this.newItem = '';
+                    },
+                    changeState: function(newState){
+                        this.state = newState;
+                        this.newItem = '';
+                    },
+                    togglePurchased: function(item){
+                        item.purchased = !item.purchased;
+                    }
                 }
             })
         </script>
